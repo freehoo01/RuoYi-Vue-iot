@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iot.mapper.IotDeviceMapper">
+    <resultMap type="IotDevice" id="IotDeviceResult">
+        <id     property="deviceId"        column="device_id"        />
+        <result property="deviceCode"      column="device_code"      />
+        <result property="deviceName"      column="device_name"      />
+        <result property="groupId"         column="group_id"         />
+        <result property="groupName"       column="group_name"       />
+        <result property="status"          column="status"           />
+        <result property="lastOnlineTime"  column="last_online_time" />
+        <result property="deviceType"      column="device_type"      />
+        <result property="firmwareVersion" column="firmware_version" />
+        <result property="deviceIp"        column="device_ip"        />
+        <result property="createBy"        column="create_by"        />
+        <result property="createTime"      column="create_time"      />
+        <result property="updateBy"        column="update_by"        />
+        <result property="updateTime"      column="update_time"      />
+        <result property="remark"          column="remark"           />
+    </resultMap>
+
+    <sql id="selectIotDeviceVo">
+        select d.device_id, d.device_code, d.device_name, d.group_id, g.group_name, d.status, d.last_online_time, 
+               d.device_type, d.firmware_version, d.device_ip, d.create_by, d.create_time, d.update_by, d.update_time, d.remark 
+        from iot_device d left join iot_device_group g on d.group_id = g.group_id
+    </sql>
+
+    <select id="selectIotDeviceById" parameterType="Long" resultMap="IotDeviceResult">
+        <include refid="selectIotDeviceVo" />
+        where d.device_id = #{deviceId}
+    </select>
+
+    <select id="selectIotDeviceByCode" parameterType="String" resultMap="IotDeviceResult">
+        <include refid="selectIotDeviceVo" />
+        where d.device_code = #{deviceCode}
+    </select>
+
+    <select id="selectIotDeviceList" parameterType="IotDevice" resultMap="IotDeviceResult">
+        <include refid="selectIotDeviceVo" />
+        <where>
+            <if test="deviceCode != null and deviceCode != ''"> and d.device_code like concat('%', #{deviceCode}, '%')</if>
+            <if test="deviceName != null and deviceName != ''"> and d.device_name like concat('%', #{deviceName}, '%')</if>
+            <if test="groupId != null"> and d.group_id = #{groupId}</if>
+            <if test="status != null and status != ''"> and d.status = #{status}</if>
+            <if test="deviceType != null and deviceType != ''"> and d.device_type like concat('%', #{deviceType}, '%')</if>
+        </where>
+    </select>
+
+    <insert id="insertIotDevice" parameterType="IotDevice" useGeneratedKeys="true" keyProperty="deviceId">
+        insert into iot_device
+        (<if test="deviceCode != null">device_code,</if>
+         <if test="deviceName != null">device_name,</if>
+         <if test="groupId != null">group_id,</if>
+         <if test="status != null">status,</if>
+         <if test="lastOnlineTime != null">last_online_time,</if>
+         <if test="deviceType != null">device_type,</if>
+         <if test="firmwareVersion != null">firmware_version,</if>
+         <if test="deviceIp != null">device_ip,</if>
+         <if test="createBy != null">create_by,</if>
+         create_time, update_time)
+        values
+        (<if test="deviceCode != null">#{deviceCode},</if>
+         <if test="deviceName != null">#{deviceName},</if>
+         <if test="groupId != null">#{groupId},</if>
+         <if test="status != null">#{status},</if>
+         <if test="lastOnlineTime != null">#{lastOnlineTime},</if>
+         <if test="deviceType != null">#{deviceType},</if>
+         <if test="firmwareVersion != null">#{firmwareVersion},</if>
+         <if test="deviceIp != null">#{deviceIp},</if>
+         <if test="createBy != null">#{createBy},</if>
+         sysdate(), sysdate())
+    </insert>
+
+    <update id="updateIotDevice" parameterType="IotDevice">
+        update iot_device
+        <set>
+            <if test="deviceName != null">device_name = #{deviceName},</if>
+            <if test="groupId != null">group_id = #{groupId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="lastOnlineTime != null">last_online_time = #{lastOnlineTime},</if>
+            <if test="deviceType != null">device_type = #{deviceType},</if>
+            <if test="firmwareVersion != null">firmware_version = #{firmwareVersion},</if>
+            <if test="deviceIp != null">device_ip = #{deviceIp},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where device_id = #{deviceId}
+    </update>
+
+    <update id="updateDeviceStatus" parameterType="java.util.Map">
+        update iot_device
+        set status = #{status},
+            last_online_time = sysdate()
+        where device_code = #{deviceCode}
+    </update>
+
+    <delete id="deleteIotDeviceById" parameterType="Long">
+        delete from iot_device where device_id = #{deviceId}
+    </delete>
+
+    <delete id="deleteIotDeviceByIds" parameterType="Long[]">
+        delete from iot_device where device_id in 
+        <foreach item="deviceId" collection="array" open="(" separator="," close=")">
+            #{deviceId}
+        </foreach>
+    </delete>
+</mapper>

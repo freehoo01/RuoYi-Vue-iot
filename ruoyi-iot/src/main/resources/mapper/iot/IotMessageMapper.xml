@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iot.mapper.IotMessageMapper">
+    <resultMap type="IotMessage" id="IotMessageResult">
+        <id     property="messageId"      column="message_id"      />
+        <result property="pushMode"       column="push_mode"       />
+        <result property="targetDevices"  column="target_devices"  />
+        <result property="targetGroupId"  column="target_group_id" />
+        <result property="messageContent" column="message_content" />
+        <result property="status"         column="status"          />
+        <result property="resultDesc"     column="result_desc"     />
+        <result property="pushTime"       column="push_time"       />
+        <result property="createBy"       column="create_by"       />
+        <result property="createTime"     column="create_time"     />
+        <result property="updateBy"       column="update_by"       />
+        <result property="updateTime"     column="update_time"     />
+        <result property="remark"         column="remark"          />
+    </resultMap>
+
+    <sql id="selectIotMessageVo">
+        select message_id, push_mode, target_devices, target_group_id, message_content, status, result_desc, push_time, create_by, create_time, update_by, update_time, remark from iot_message
+    </sql>
+
+    <select id="selectIotMessageById" parameterType="Long" resultMap="IotMessageResult">
+        <include refid="selectIotMessageVo" />
+        where message_id = #{messageId}
+    </select>
+
+    <select id="selectIotMessageList" parameterType="IotMessage" resultMap="IotMessageResult">
+        <include refid="selectIotMessageVo" />
+        <where>
+            <if test="pushMode != null and pushMode != ''"> and push_mode = #{pushMode}</if>
+            <if test="targetDevices != null and targetDevices != ''"> and target_devices like concat('%', #{targetDevices}, '%')</if>
+            <if test="targetGroupId != null"> and target_group_id = #{targetGroupId}</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+            <if test="pushTime != null and pushTime != ''"> and push_time = #{pushTime}</if>
+        </where>
+    </select>
+
+    <insert id="insertIotMessage" parameterType="IotMessage" useGeneratedKeys="true" keyProperty="messageId">
+        insert into iot_message
+        (<if test="pushMode != null">push_mode,</if>
+         <if test="targetDevices != null">target_devices,</if>
+         <if test="targetGroupId != null">target_group_id,</if>
+         <if test="messageContent != null">message_content,</if>
+         <if test="status != null">status,</if>
+         <if test="resultDesc != null">result_desc,</if>
+         <if test="pushTime != null">push_time,</if>
+         <if test="createBy != null">create_by,</if>
+         create_time, update_time)
+        values
+        (<if test="pushMode != null">#{pushMode},</if>
+         <if test="targetDevices != null">#{targetDevices},</if>
+         <if test="targetGroupId != null">#{targetGroupId},</if>
+         <if test="messageContent != null">#{messageContent},</if>
+         <if test="status != null">#{status},</if>
+         <if test="resultDesc != null">#{resultDesc},</if>
+         <if test="pushTime != null">#{pushTime},</if>
+         <if test="createBy != null">#{createBy},</if>
+         sysdate(), sysdate())
+    </insert>
+
+    <update id="updateIotMessage" parameterType="IotMessage">
+        update iot_message
+        <set>
+            <if test="pushMode != null">push_mode = #{pushMode},</if>
+            <if test="targetDevices != null">target_devices = #{targetDevices},</if>
+            <if test="targetGroupId != null">target_group_id = #{targetGroupId},</if>
+            <if test="messageContent != null">message_content = #{messageContent},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="resultDesc != null">result_desc = #{resultDesc},</if>
+            <if test="pushTime != null">push_time = #{pushTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where message_id = #{messageId}
+    </update>
+
+    <delete id="deleteIotMessageById" parameterType="Long">
+        delete from iot_message where message_id = #{messageId}
+    </delete>
+
+    <delete id="deleteIotMessageByIds" parameterType="Long[]">
+        delete from iot_message where message_id in 
+        <foreach item="messageId" collection="array" open="(" separator="," close=")">
+            #{messageId}
+        </foreach>
+    </delete>
+</mapper>

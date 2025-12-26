@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iot.mapper.MqttConfigMapper">
+    <resultMap type="MqttConfig" id="MqttConfigResult">
+        <id     property="configId"    column="config_id"     />
+        <result property="serverUrl"   column="server_url"    />
+        <result property="port"        column="port"          />
+        <result property="username"    column="username"      />
+        <result property="password"    column="password"      />
+        <result property="version"     column="version"       />
+        <result property="status"      column="status"        />
+        <result property="createBy"    column="create_by"     />
+        <result property="createTime"  column="create_time"   />
+        <result property="updateBy"    column="update_by"     />
+        <result property="updateTime"  column="update_time"   />
+        <result property="remark"      column="remark"        />
+    </resultMap>
+
+    <sql id="selectMqttConfigVo">
+        select config_id, server_url, port, username, password, version, status, create_by, create_time, update_by, update_time, remark from mqtt_config
+    </sql>
+
+    <select id="selectMqttConfigById" parameterType="Long" resultMap="MqttConfigResult">
+        <include refid="selectMqttConfigVo" />
+        where config_id = #{configId}
+    </select>
+
+    <select id="selectCurrentMqttConfig" resultMap="MqttConfigResult">
+        <include refid="selectMqttConfigVo" />
+        where status = '1' order by create_time desc limit 1
+    </select>
+
+    <select id="selectMqttConfigList" parameterType="MqttConfig" resultMap="MqttConfigResult">
+        <include refid="selectMqttConfigVo" />
+        <where>
+            <if test="serverUrl != null and serverUrl != ''"> and server_url like concat('%', #{serverUrl}, '%')</if>
+            <if test="port != null"> and port = #{port}</if>
+            <if test="username != null and username != ''"> and username like concat('%', #{username}, '%')</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+
+    <insert id="insertMqttConfig" parameterType="MqttConfig" useGeneratedKeys="true" keyProperty="configId">
+        insert into mqtt_config
+        (<if test="serverUrl != null">server_url,</if>
+         <if test="port != null">port,</if>
+         <if test="username != null">username,</if>
+         <if test="password != null">password,</if>
+         <if test="version != null">version,</if>
+         <if test="status != null">status,</if>
+         <if test="createBy != null">create_by,</if>
+         create_time, update_time)
+        values
+        (<if test="serverUrl != null">#{serverUrl},</if>
+         <if test="port != null">#{port},</if>
+         <if test="username != null">#{username},</if>
+         <if test="password != null">#{password},</if>
+         <if test="version != null">#{version},</if>
+         <if test="status != null">#{status},</if>
+         <if test="createBy != null">#{createBy},</if>
+         sysdate(), sysdate())
+    </insert>
+
+    <update id="updateMqttConfig" parameterType="MqttConfig">
+        update mqtt_config
+        <set>
+            <if test="serverUrl != null">server_url = #{serverUrl},</if>
+            <if test="port != null">port = #{port},</if>
+            <if test="username != null">username = #{username},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="version != null">version = #{version},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where config_id = #{configId}
+    </update>
+
+    <delete id="deleteMqttConfigById" parameterType="Long">
+        delete from mqtt_config where config_id = #{configId}
+    </delete>
+
+    <delete id="deleteMqttConfigByIds" parameterType="Long[]">
+        delete from mqtt_config where config_id in 
+        <foreach item="configId" collection="array" open="(" separator="," close=")">
+            #{configId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iot.mapper.IotDeviceDataMapper">
+    <resultMap type="IotDeviceData" id="IotDeviceDataResult">
+        <id     property="dataId"        column="data_id"        />
+        <result property="deviceCode"    column="device_code"    />
+        <result property="deviceName"    column="device_name"    />
+        <result property="dataType"      column="data_type"      />
+        <result property="dataValue"     column="data_value"     />
+        <result property="unit"          column="unit"          />
+        <result property="status"        column="status"        />
+        <result property="collectTime"   column="collect_time"   />
+        <result property="createBy"      column="create_by"      />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"      column="update_by"      />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"        column="remark"        />
+    </resultMap>
+
+    <sql id="selectIotDeviceDataVo">
+        select data_id, device_code, device_name, data_type, data_value, unit, status, collect_time, create_by, create_time, update_by, update_time, remark from iot_device_data
+    </sql>
+
+    <select id="selectIotDeviceDataById" parameterType="Long" resultMap="IotDeviceDataResult">
+        <include refid="selectIotDeviceDataVo" />
+        where data_id = #{dataId}
+    </select>
+
+    <select id="selectIotDeviceDataList" parameterType="IotDeviceData" resultMap="IotDeviceDataResult">
+        <include refid="selectIotDeviceDataVo" />
+        <where>
+            <if test="deviceCode != null and deviceCode != ''"> and device_code like concat('%', #{deviceCode}, '%')</if>
+            <if test="dataType != null and dataType != ''"> and data_type like concat('%', #{dataType}, '%')</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+            <if test="collectTime != null and collectTime != ''"> and collect_time = #{collectTime}</if>
+        </where>
+        order by collect_time desc
+    </select>
+
+    <insert id="insertIotDeviceData" parameterType="IotDeviceData" useGeneratedKeys="true" keyProperty="dataId">
+        insert into iot_device_data
+        (<if test="deviceCode != null">device_code,</if>
+         <if test="deviceName != null">device_name,</if>
+         <if test="dataType != null">data_type,</if>
+         <if test="dataValue != null">data_value,</if>
+         <if test="unit != null">unit,</if>
+         <if test="status != null">status,</if>
+         <if test="collectTime != null">collect_time,</if>
+         <if test="createBy != null">create_by,</if>
+         create_time, update_time)
+        values
+        (<if test="deviceCode != null">#{deviceCode},</if>
+         <if test="deviceName != null">#{deviceName},</if>
+         <if test="dataType != null">#{dataType},</if>
+         <if test="dataValue != null">#{dataValue},</if>
+         <if test="unit != null">#{unit},</if>
+         <if test="status != null">#{status},</if>
+         <if test="collectTime != null">#{collectTime},</if>
+         <if test="createBy != null">#{createBy},</if>
+         sysdate(), sysdate())
+    </insert>
+
+    <update id="updateIotDeviceData" parameterType="IotDeviceData">
+        update iot_device_data
+        <set>
+            <if test="deviceCode != null">device_code = #{deviceCode},</if>
+            <if test="deviceName != null">device_name = #{deviceName},</if>
+            <if test="dataType != null">data_type = #{dataType},</if>
+            <if test="dataValue != null">data_value = #{dataValue},</if>
+            <if test="unit != null">unit = #{unit},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="collectTime != null">collect_time = #{collectTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where data_id = #{dataId}
+    </update>
+
+    <delete id="deleteIotDeviceDataById" parameterType="Long">
+        delete from iot_device_data where data_id = #{dataId}
+    </delete>
+
+    <delete id="deleteIotDeviceDataByIds" parameterType="Long[]">
+        delete from iot_device_data where data_id in 
+        <foreach item="dataId" collection="array" open="(" separator="," close=")">
+            #{dataId}
+        </foreach>
+    </delete>
+
+    <select id="selectLatestDeviceData" parameterType="String" resultMap="IotDeviceDataResult">
+        select * from (
+            select *, row_number() over(partition by data_type order by collect_time desc) as rn
+            from iot_device_data
+            where device_code = #{deviceCode}
+        ) t where rn = 1
+    </select>
+
+    <select id="selectDeviceHistoryData" parameterType="Map" resultMap="IotDeviceDataResult">
+        <include refid="selectIotDeviceDataVo" />
+        where device_code = #{deviceCode}
+        <if test="dataType != null and dataType != ''"> and data_type = #{dataType}</if>
+        <if test="startTime != null and startTime != ''"> and collect_time &gt;= #{startTime}</if>
+        <if test="endTime != null and endTime != ''"> and collect_time &lt;= #{endTime}</if>
+        order by collect_time desc
+    </select>
+</mapper>
